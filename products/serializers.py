@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import Product, ProductHistory, WishList
 
-
 class ProductSerializer(serializers.ModelSerializer):
   unique_users_count = serializers.SerializerMethodField()
 

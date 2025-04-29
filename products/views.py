@@ -17,6 +17,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 class ProductHistoryViewSet(viewsets.ModelViewSet):
   queryset = ProductHistory.objects.all()
   serializer_class = ProductHistorySerializer
+  permission_classes = [IsAuthenticated]
 
 
 class WishListViewSet(viewsets.ModelViewSet):
@@ -32,6 +33,7 @@ class WishListViewSet(viewsets.ModelViewSet):
 
 
 class AveragePriceAPIView(APIView):
+  permission_classes = [IsAuthenticated]
   def get(self, request):
     serializer = AveragePriceSerializer(data=request.query_params)
 
@@ -40,7 +42,7 @@ class AveragePriceAPIView(APIView):
     end_date = serializer.validated_data['end_date']
     product = serializer.validated_data['product']
 
-    discount_period = list(ProductHistory.objects.filter(product=product))
+    discount_period = ProductHistory.objects.filter(product=product)
     all_dates = defaultdict(float)
     price_for_day = product.current_price
     days_count = (end_date - start_date).days + 1
@@ -49,7 +51,7 @@ class AveragePriceAPIView(APIView):
       current_date = start_date + timedelta(days=day)
 
       for discount in discount_period:
-        if discount.start_date.date() <= current_date <= discount.end_date.date():
+        if discount.is_discount(current_date):
           price_for_day = discount.price
           break
 
@@ -58,4 +60,4 @@ class AveragePriceAPIView(APIView):
     prices = all_dates.values()
     average_price = round(sum(prices) / len(prices))
 
-    return Response(f' Средняя цена: {average_price}')
+    return Response({"avg": average_price})

@@ -12,13 +12,15 @@ class Product(models.Model):
     return f"{self.name}: ({self.article})"
 
   def save(self, *args, **kwargs):
-    if self.pk is not None:
-      old_price = Product.objects.get(pk=self.pk).current_price
-
-      if old_price != self.current_price:
+    try:
+      old_price = Product.objects.get(pk=self.pk)
+    except Product.DoesNotExist:
+      raise
+    else:
+      if old_price.current_price != self.current_price:
         ProductHistory.objects.create(
           product = self,
-          price = old_price,
+          price = old_price.current_price,
           start_date = timezone.now()
         )
 
@@ -36,6 +38,9 @@ class ProductHistory(models.Model):
 
   def __str__(self):
     return f"{self.product}: {self.price} € -  c {self.start_date} до {self.end_date}"
+
+  def is_discount(self, current_date):
+    return self.start_date.date() <= current_date <= self.end_date.date()
 
 
 class WishList(models.Model):
