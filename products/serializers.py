@@ -30,3 +30,15 @@ class AveragePriceSerializer(serializers.Serializer):
   product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
   start_date = serializers.DateField()
   end_date = serializers.DateField()
+
+
+class SetPriceSerializer(serializers.Serializer):
+  product_id = serializers.IntegerField()
+  price = serializers.DecimalField(max_digits=10, decimal_places=2)
+  start_date = serializers.DateField()
+  end_date = serializers.DateField()
+
+  def validate(self, data):
+    if data['start_date'] > data['end_date']:
+      raise serializers.ValidationError("Start_date can't be more end_date!")
+    return data
