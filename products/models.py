@@ -11,21 +11,6 @@ class Product(models.Model):
   def __str__(self):
     return f"{self.name}: ({self.article})"
 
-  def save(self, *args, **kwargs):
-    try:
-      old_price = Product.objects.get(pk=self.pk)
-    except Product.DoesNotExist:
-      raise
-    else:
-      if old_price.current_price != self.current_price:
-        ProductHistory.objects.create(
-          product = self,
-          price = old_price.current_price,
-          start_date = timezone.now()
-        )
-
-    super().save(*args, **kwargs)
-
   def wished_user_count(self):
     return User.objects.filter(wishlists__products=self).distinct().count()
 
